@@ -100,5 +100,5 @@ jobs:
           components: clippy
       - name: Run clippy
         run: |
-          cd src-tarui
+          cd ./src-tarui
           cargo clippy -- -D warnings
