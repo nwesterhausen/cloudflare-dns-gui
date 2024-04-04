@@ -1,9 +1,14 @@
 import { defineConfig } from "vite";
-import solid from "vite-plugin-solid";
+import solidPlugin from "vite-plugin-solid";
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [solid()],
+  plugins: [solidPlugin()],
+  build: {
+    target: 'esnext',
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
@@ -18,4 +23,14 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+
+  // PostCSS configuration
+  css: {
+    postcss: {
+      plugins: [
+        tailwindcss,
+        autoprefixer()
+      ],
+    }
+  }
 }));

@@ -1,7 +1,5 @@
 import { createSignal } from "solid-js";
-import logo from "./assets/logo.svg";
 import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
 
 function App() {
   const [greetMsg, setGreetMsg] = createSignal("");
@@ -13,23 +11,9 @@ function App() {
   }
 
   return (
+    <>
     <div class="container">
       <h1>Welcome to Tauri!</h1>
-
-      <div class="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://solidjs.com" target="_blank">
-          <img src={logo} class="logo solid" alt="Solid logo" />
-        </a>
-      </div>
-
-      <p>Click on the Tauri, Vite, and Solid logos to learn more.</p>
-
       <form
         class="row"
         onSubmit={(e) => {
@@ -47,6 +31,35 @@ function App() {
 
       <p>{greetMsg()}</p>
     </div>
+    <div>
+
+<span class="loading loading-spinner loading-lg" />
+    </div>
+    <div class="carousel rounded-box">
+  <div class="carousel-item">
+    <img src="https://daisyui.com/images/stock/photo-1559703248-dcaaec9fab78.jpg" alt="Burger" />
+  </div>
+  <div class="carousel-item">
+    <img src="https://daisyui.com/images/stock/photo-1565098772267-60af42b81ef2.jpg" alt="Burger" />
+  </div>
+  <div class="carousel-item">
+    <img src="https://daisyui.com/images/stock/photo-1572635148818-ef6fd45eb394.jpg" alt="Burger" />
+  </div>
+  <div class="carousel-item">
+    <img src="https://daisyui.com/images/stock/photo-1494253109108-2e30c049369b.jpg" alt="Burger" />
+  </div>
+  <div class="carousel-item">
+    <img src="https://daisyui.com/images/stock/photo-1550258987-190a2d41a8ba.jpg" alt="Burger" />
+  </div>
+  <div class="carousel-item">
+    <img src="https://daisyui.com/images/stock/photo-1559181567-c3190ca9959b.jpg" alt="Burger" />
+  </div>
+  <div class="carousel-item">
+    <img src="https://daisyui.com/images/stock/photo-1601004890684-d8cbf643f5f2.jpg" alt="Burger" />
+  </div>
+</div>
+
+  </>
   );
 }
 
