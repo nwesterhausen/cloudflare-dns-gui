@@ -4,17 +4,23 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+/// A trait for authorizing requests to the Cloudflare API.
 pub trait CloudflareAuthorizer: fmt::Debug {
+    /// Authorize a request to the Cloudflare API.
     fn with_auth(&self, request_builder: reqwest::RequestBuilder) -> reqwest::RequestBuilder;
 }
 
+/// An authorizer that uses a bearer token (in the header as "Auth: Bearer xxx").
 #[derive(Debug)]
 pub struct BearerAuthorizer {
+    /// The bearer token.
     pub token: String,
 }
 
+/// An authorizer that uses an API key (in the header under X-Auth-Key).
 #[derive(Debug)]
 pub struct ApiKeyAuthorizer {
+    /// The API key.
     pub key: String,
 }
 
