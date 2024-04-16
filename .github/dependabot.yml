@@ -10,6 +10,9 @@ updates:
     schedule:
       interval: weekly
     groups:
+      major-updates:
+        update-types:
+          - major
       minor-updates:
         update-types:
           - minor
@@ -30,6 +33,10 @@ updates:
         update-types:
           - minor
           - patch
+      prod-dependencies-major:
+        dependency-type: production
+        update-types:
+          - major
   - directory: /
     package-ecosystem: npm
     schedule:
@@ -46,3 +53,7 @@ updates:
         update-types:
           - minor
           - patch
+      prod-dependencies-major:
+        dependency-type: production
+        update-types:
+          - major
