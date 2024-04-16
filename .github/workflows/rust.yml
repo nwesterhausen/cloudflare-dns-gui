@@ -58,6 +58,7 @@ jobs:
           toolchain: stable
       - name: Install Client Dependencies & Build
         run: |
+          pnpm add -g pnpm
           pnpm install
           pnpm build
       - name: Build Tauri App
