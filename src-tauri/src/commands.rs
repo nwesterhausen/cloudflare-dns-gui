@@ -1,139 +1,131 @@
-//! This module contains the Tauri commands that are exposed to the frontend.
+//! This module contains the Tauri commands that are exposed to the JavaScript side of the application.
+
+use std::collections::HashMap;
+
+use tauri::State;
 
 use crate::{
-    cloudflare::{
-        BearerAuthorizer, CloudflareAuthorizer, CloudflareListZonesResponse, CloudflareResponse,
-        CloudflareUserDetailsResponse, DNSRecord,
-    },
-    models::CustomUserDetails,
+    api,
+    cloudflare::{CloudflareListZonesResponse, DNSRecord},
+    models::{CustomUserDetails, ManagedCache},
 };
 
-/// The base URL for the Cloudflare API.
-pub const CLOUDFLARE_API_BASE: &str = "https://api.cloudflare.com/client/v4";
-
-/// Get a list of zones the user has access to.
-///
-/// This command requires a token to be passed in, which is used to authenticate with the Cloudflare API.
-///
-/// # Errors
-///
-/// If the request fails, this function will return `Err(())`.
+/// Set the api_token
 #[tauri::command]
+#[allow(clippy::needless_pass_by_value)]
+pub async fn set_api_token(
+    token: String,
+    managed_cache: State<'_, ManagedCache>,
+) -> Result<(), ()> {
+    // Clear the cache
+    {
+        managed_cache.zones.lock().unwrap().clear();
+        managed_cache.zone_dns.lock().unwrap().clear();
+        *managed_cache.user_details.lock().unwrap() = None;
+        *managed_cache.api_token.lock().unwrap() = String::default();
+    }
+    *managed_cache.api_token.lock().unwrap() = token.clone();
+
+    // Check the token is valid
+    let user_details = api::check_api_key(&token).await;
+    if let Ok(user_details) = user_details {
+        // Update the user details and re-lock the cache
+        {
+            *managed_cache.user_details.lock().unwrap() = Some(user_details);
+        }
+    }
+    Ok(())
+}
+
+/// Initialize the Cloudflare API with the provided token.
+/// This will clear the cache and set the token, for use in subsequent requests.
+#[tauri::command]
+#[allow(clippy::needless_pass_by_value)]
+pub async fn initialize_cf(managed_cache: State<'_, ManagedCache>) -> Result<bool, ()> {
+    // Clear the cache
+    {
+        managed_cache.zones.lock().unwrap().clear();
+        managed_cache.zone_dns.lock().unwrap().clear();
+        *managed_cache.user_details.lock().unwrap() = None;
+    }
+    // Attempt to set the token
+    let new_token = managed_cache.api_token.lock().unwrap().clone();
+    // Check the token is valid
+    let user_details = api::check_api_key(&new_token).await;
+    if let Ok(user_details) = user_details {
+        // Update the user details and re-lock the cache
+        {
+            *managed_cache.user_details.lock().unwrap() = Some(user_details);
+        }
+        // Get the zones and DNS records
+        let zones = match api::get_zones(&new_token).await {
+            Ok(zones) => {
+                if zones.success {
+                    zones.result
+                } else {
+                    return Err(());
+                }
+            }
+            Err(_) => return Err(()),
+        };
+        // Update the cache with the zone details
+        {
+            *managed_cache.zones.lock().unwrap() = zones.clone();
+        }
+        let zone_ids: Vec<String> = zones.iter().map(|z| z.id.clone()).collect();
+
+        {
+            for zone_id in &zone_ids {
+                let dns_records = api::get_zone_dns(&new_token, zone_id.clone())
+                    .await
+                    .unwrap();
+                if !dns_records.success {
+                    return Err(());
+                }
+                let dns_records = dns_records.result;
+                let mut zone_dns = managed_cache.zone_dns.lock().unwrap();
+
+                zone_dns.insert(zone_id.clone(), dns_records);
+            }
+        }
+    }
+    Ok(true)
+}
+
+/// Check if the API key was valid.
+/// This will return the user details if the key is valid, or an error if it is not.
+#[tauri::command]
+#[allow(clippy::needless_pass_by_value)]
+pub async fn get_user_details(
+    managed_cache: State<'_, ManagedCache>,
+) -> Result<CustomUserDetails, ()> {
+    if let Some(user_details) = &*managed_cache.user_details.lock().unwrap() {
+        Ok(user_details.clone())
+    } else {
+        Err(())
+    }
+}
+
+/// Get the zones for the current user. This is pulled from the cache.
+#[tauri::command]
+#[allow(clippy::needless_pass_by_value)]
 pub async fn get_zones(
-    token: &str,
-) -> Result<CloudflareResponse<Vec<CloudflareListZonesResponse>>, ()> {
-    let authorizer = BearerAuthorizer {
-        token: token.to_string(),
-    };
-    let client = reqwest::Client::new();
-
-    let request_builder = client
-        .get(format!("{CLOUDFLARE_API_BASE}/zones"))
-        .header("Content-Type", "application/json");
-
-    let request_builder = authorizer.with_auth(request_builder);
-
-    let response: CloudflareResponse<Vec<CloudflareListZonesResponse>> = request_builder
-        .send()
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to send request");
-            tracing::error!("{:?}", e);
-        })?
-        .json()
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to parse response as JSON");
-            tracing::error!("{:?}", e);
-        })?;
-
-    Ok(response) // Return the response to the frontend
+    managed_cache: State<'_, ManagedCache>,
+) -> Result<Vec<CloudflareListZonesResponse>, ()> {
+    if let Ok(zones) = managed_cache.zones.lock() {
+        return Ok(zones.clone());
+    }
+    Err(())
 }
 
-/// Check if the API key is valid, by making a request to the Cloudflare API.
-///
-/// We request to User Details and then pull a couple of fields from the response:
-///
-/// - `id`: The user ID.
-/// - `email`: The email address of the user.
-/// - `suspended`: Whether the user is suspended.
-/// - `organizations`: The organizations the user is a member of (just the names).
-///
-/// # Errors
-///
-/// If the request fails, this function will return `Err(())`.
+/// Get the DNS records for a zone. This is pulled from the cache.
 #[tauri::command]
-pub async fn check_api_key(token: &str) -> Result<CustomUserDetails, ()> {
-    let authorizer = BearerAuthorizer {
-        token: token.to_string(),
-    };
-    let client = reqwest::Client::new();
-
-    let request_builder = client
-        .get(format!("{CLOUDFLARE_API_BASE}/user"))
-        .header("Content-Type", "application/json");
-
-    let request_builder = authorizer.with_auth(request_builder);
-
-    let response: CloudflareResponse<CloudflareUserDetailsResponse> = request_builder
-        .send()
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to send request");
-            tracing::error!("{:?}", e);
-        })?
-        .json()
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to parse response as JSON");
-            tracing::error!("{:?}", e);
-        })?;
-
-    Ok(CustomUserDetails {
-        id: response.result.id.clone(),
-        email: response.result.email.clone(),
-        suspended: response.result.suspended,
-        organizations: response
-            .result
-            .organizations
-            .iter()
-            .map(|org| org.name.clone())
-            .collect(),
-    }) // Return the response to the frontend
-}
-
-/// Command for getting all dns entries for a zone
-#[tauri::command]
+#[allow(clippy::needless_pass_by_value)]
 pub async fn get_zone_dns(
-    token: &str,
-    zone_id: String,
-) -> Result<CloudflareResponse<Vec<DNSRecord>>, ()> {
-    let authorizer = BearerAuthorizer {
-        token: token.to_string(),
-    };
-    let client = reqwest::Client::new();
-
-    let request_builder = client
-        .get(format!(
-            "{CLOUDFLARE_API_BASE}/zones/{zone_id}/dns_records?per_page=1000"
-        ))
-        .header("Content-Type", "application/json");
-
-    let request_builder = authorizer.with_auth(request_builder);
-
-    let response: CloudflareResponse<Vec<DNSRecord>> = request_builder
-        .send()
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to send request");
-            tracing::error!("{:?}", e);
-        })?
-        .json()
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to parse response as JSON");
-            tracing::error!("{:?}", e);
-        })?;
-
-    Ok(response) // Return the response to the frontend
+    managed_cache: State<'_, ManagedCache>,
+) -> Result<HashMap<String, Vec<DNSRecord>>, ()> {
+    if let Ok(zone_dns) = managed_cache.zone_dns.lock() {
+        return Ok(zone_dns.clone());
+    }
+    Err(())
 }

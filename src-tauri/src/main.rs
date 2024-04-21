@@ -2,8 +2,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-pub mod cloudflare;
+use std::sync::Mutex;
+
+use models::ManagedCache;
+
 #[allow(clippy::used_underscore_binding)]
+pub mod api;
+pub mod cloudflare;
 pub mod commands;
 pub mod models;
 
@@ -14,9 +19,17 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             commands::get_zones,
-            commands::check_api_key,
+            commands::get_user_details,
             commands::get_zone_dns,
+            commands::initialize_cf,
+            commands::set_api_token,
         ])
+        .manage(ManagedCache {
+            zones: Mutex::default(),
+            zone_dns: Mutex::default(),
+            api_token: Mutex::default(),
+            user_details: Mutex::default(),
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
