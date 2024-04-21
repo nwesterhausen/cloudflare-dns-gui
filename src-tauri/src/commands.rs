@@ -3,7 +3,7 @@
 use crate::{
     cloudflare::{
         BearerAuthorizer, CloudflareAuthorizer, CloudflareListZonesResponse, CloudflareResponse,
-        CloudflareUserDetailsResponse,
+        CloudflareUserDetailsResponse, DNSRecord,
     },
     models::CustomUserDetails,
 };
@@ -100,4 +100,40 @@ pub async fn check_api_key(token: &str) -> Result<CustomUserDetails, ()> {
             .map(|org| org.name.clone())
             .collect(),
     }) // Return the response to the frontend
+}
+
+/// Command for getting all dns entries for a zone
+#[tauri::command]
+pub async fn get_zone_dns(
+    token: &str,
+    zone_id: String,
+) -> Result<CloudflareResponse<Vec<DNSRecord>>, ()> {
+    let authorizer = BearerAuthorizer {
+        token: token.to_string(),
+    };
+    let client = reqwest::Client::new();
+
+    let request_builder = client
+        .get(format!(
+            "{CLOUDFLARE_API_BASE}/zones/{zone_id}/dns_records?per_page=1000"
+        ))
+        .header("Content-Type", "application/json");
+
+    let request_builder = authorizer.with_auth(request_builder);
+
+    let response: CloudflareResponse<Vec<DNSRecord>> = request_builder
+        .send()
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to send request");
+            tracing::error!("{:?}", e);
+        })?
+        .json()
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to parse response as JSON");
+            tracing::error!("{:?}", e);
+        })?;
+
+    Ok(response) // Return the response to the frontend
 }

@@ -14,7 +14,8 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             commands::get_zones,
-            commands::check_api_key
+            commands::check_api_key,
+            commands::get_zone_dns,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

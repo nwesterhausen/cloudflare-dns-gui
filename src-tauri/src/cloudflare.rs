@@ -307,3 +307,49 @@ pub struct CloudflareUserDetailsResponse {
     /// The user's beta entitlements
     pub betas: Vec<String>,
 }
+
+/// A DNS record response
+#[derive(Debug, Deserialize, Serialize)]
+pub struct DNSRecord {
+    /// The stored DNS record.
+    /// For A or AAAA records, this is the IP address.
+    /// For most others, this is the content of the record (string)
+    content: String,
+    /// The DNS record identifier. @ for root record
+    name: String,
+    /// Whether the record is proxied by Cloudflare
+    proxied: Option<bool>,
+    /// The record type (A, AAAA, CNAME, etc.)
+    r#type: String,
+    /// Comments or notes about the DNS record. This field has no effect on DNS responses.
+    comment: Option<String>,
+    /// When the record was created. Example: `2014-01-01T05:20:00.12345Z`
+    created_on: String,
+    /// Identifier for the record (used with the API)
+    id: String,
+    /// Whether this record can be modified/deleted (true means it's managed by Cloudflare)
+    locked: bool,
+    /// Extra Cloudflare-specific information about the record.
+    meta: Meta,
+    /// When the record was last modified. Example: `2014-01-01T05:20:00.12345Z`
+    modified_on: Option<String>,
+    /// Whether the record can be proxied by Cloudflare or not
+    proxiable: bool,
+    /// Custom tags for the record
+    tags: Vec<String>,
+    /// Time to live for the record. To signify `auto ttl`, set this to `1`. Valid values: 60 - 86400,0,1
+    ttl: u32,
+    /// The zone identifier
+    zone_id: Option<String>,
+    /// The zone name
+    zone_name: String,
+}
+
+/// Extra Cloudflare-specific information about the record.
+#[derive(Debug, Deserialize, Serialize)]
+struct Meta {
+    /// Whether the record was automatically added by Cloudflare during initial setup
+    auto_added: Option<bool>,
+    /// The source of the record. This is typically the name of the service that the record was imported from.
+    source: Option<String>,
+}
