@@ -3,9 +3,9 @@ version = "1.0.0"
 identifier = "one.nwest.apps.cloudflare-dns-gui"
 
 [build]
-beforeDevCommand = "pnpm dev"
+beforeDevCommand = "bun dev"
 devUrl = "http://localhost:1420"
-beforeBuildCommand = "pnpm build"
+beforeBuildCommand = "bun build"
 frontendDist = "../dist"
 
 [[app.windows]]

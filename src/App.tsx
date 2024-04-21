@@ -1,85 +1,54 @@
-import { createSignal, For, Show } from "solid-js";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import { createEffect, createSignal, For, type JSX, Show } from "solid-js";
 import Navbar from "./Navbar";
-import { CLOUDFLARE_API_KEY } from "./lib";
-import type { CloudflareListZonesResponse } from "../src-tauri/bindings/CloudflareListZonesResponse";
-import type { CloudflareZoneDnsResponse } from "./types";
-import type { CustomUserDetails } from "../src-tauri/bindings/CustomUserDetails";
+import { useTokenProvider } from "./TokenProvider";
+import { useZone } from "./ZoneProvider";
 
 function App() {
-	const [greetMsg, setGreetMsg] = createSignal(<div />);
-	const [token, setToken] = createSignal(localStorage.getItem(CLOUDFLARE_API_KEY));
+	const { apiToken, userDetails } = useTokenProvider();
+	const { zones, zoneDns } = useZone();
 
-	// Update the token signal when the localStorage changes
-	window.addEventListener("storage", () => {
-		setToken(localStorage.getItem(CLOUDFLARE_API_KEY));
-	});
+	const [toast, setToast] = createSignal<JSX.Element>(<div />);
+	const putToast = (token: JSX.Element) => {
+		setToast(token);
+		setTimeout(() => {
+			setToast(<div />);
+		}, 5_000);
+	};
 
-	function setLoading() {
-		setGreetMsg(
-			<div class="flex flex-col items-center gap-3 my-2 w-96 h-48">
-				<div class="my-2 px-2 text-white">📡 Communicating with Cloudflare</div>
-				<div class="flex flex-row items-center grow">
-					<div>
-						<span class="loading loading-infinity loading-lg" />
+	createEffect(() => {
+		if (apiToken().length > 0 && userDetails.latest.email.length > 0) {
+			putToast(
+				<div class="alert alert-success">
+					<div class="flex flex-col gap-3">
+						<div>API Key is valid.</div>
+						<div>User: {userDetails.latest.email}</div>
+						<div>Organizations: {userDetails.latest.organizations.join(", ")}</div>
 					</div>
-				</div>
-			</div>,
-		);
-	}
-
-	async function get_user_details() {
-		setLoading();
-		// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-		const response = (await invoke("get_user_details", {})) as CustomUserDetails;
-		if (response) {
-			setGreetMsg(
-				<div class="flex flex-col gap-3">
-					<div>API Key is valid.</div>
-					<div>User: {response.email}</div>
-					<div>Organizations: {response.organizations.join(", ")}</div>
 				</div>,
 			);
-			await invoke("initialize_cf", {});
 		}
-	}
-
-	async function get_zones() {
-		setLoading();
-
-		const zones = (await invoke("get_zones", {})) as CloudflareListZonesResponse[];
-		const zoneDns = (await invoke("get_zone_dns", {})) as CloudflareZoneDnsResponse;
-
-		setGreetMsg(
-			<div class="flex flex-col gap-3 my-2 w-96">
-				<For each={zones}>
-					{(zone) => (
-						<div class="flex flex-row gap-3 rounded-full border-2 border-indigo-500 bg-slate-900 hover:bg-slate-700 px-4 max-w-md">
-							<div class="font-mono font-bold text-lg underline grow">{zone.name}</div>
-							<Show when={zoneDns[zone.id]} fallback={<div class="text-rose-700">Cache miss?</div>}>
-								<div class="text-cyan-400">{zoneDns[zone.id].length} DNS records</div>
-							</Show>
-						</div>
-					)}
-				</For>
-			</div>,
-		);
-	}
+	});
 
 	return (
 		<>
 			<Navbar />
 
 			<div class="container mx-auto">
-				<button type="button" class="btn btn-primary" disabled={!token()} onClick={get_user_details}>
-					Check API Key
-				</button>
-				<button type="button" class="btn btn-secondary" disabled={!token()} onClick={get_zones}>
-					Get Zones
-				</button>
-				<br />
-				<div>{greetMsg()}</div>
+				<div>
+					<div class="flex flex-col gap-3 my-2 w-96">
+						<For each={zones.latest}>
+							{(zone) => (
+								<div class="flex flex-row gap-3 rounded-full border-2 border-indigo-500 bg-slate-900 hover:bg-slate-700 px-4 max-w-md">
+									<div class="font-mono font-bold text-lg underline grow">{zone.name}</div>
+									<Show when={zoneDns.latest[zone.id]} fallback={<div class="text-rose-700">Cache miss?</div>}>
+										<div class="text-cyan-400">{zoneDns.latest[zone.id].length} DNS records</div>
+									</Show>
+								</div>
+							)}
+						</For>
+					</div>
+				</div>
+				<div class="toast toast-top toast-center">{toast()}</div>
 			</div>
 		</>
 	);
