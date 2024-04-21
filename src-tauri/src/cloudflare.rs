@@ -1,8 +1,8 @@
 //! Cloudflare API client. Includes structs that the API responds with and a helper to make requests to the API.
 
-use std::fmt;
-
 use serde::{Deserialize, Serialize};
+use std::fmt;
+use ts_rs::TS;
 
 /// A trait for authorizing requests to the Cloudflare API.
 pub trait CloudflareAuthorizer: fmt::Debug {
@@ -40,7 +40,8 @@ impl CloudflareAuthorizer for ApiKeyAuthorizer {
 ///
 /// - code: The error code. An integer >= 1000.
 /// - message: A human-readable message.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct CloudflareMessage {
     /// The error or message code. An integer >= 1000.
     pub code: u32,
@@ -49,7 +50,8 @@ pub struct CloudflareMessage {
 }
 
 /// Cloudflare API responses include result information sometimes.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct CloudflareResultInfo {
     /// The page number of the current page.
     pub page: u32,
@@ -64,7 +66,8 @@ pub struct CloudflareResultInfo {
 }
 
 /// A Cloudflare API response.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct CloudflareResponse<T> {
     /// The result of the API call.
     pub result: T,
@@ -77,7 +80,8 @@ pub struct CloudflareResponse<T> {
 }
 
 /// A Cloudflare API response.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct CloudflareResponseWithInfo<T> {
     /// The result of the API call.
     pub result: T,
@@ -92,7 +96,8 @@ pub struct CloudflareResponseWithInfo<T> {
 }
 
 /// Cloudflare account information.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct CloudflareAccount {
     /// The account identifier.
     pub id: String,
@@ -101,7 +106,8 @@ pub struct CloudflareAccount {
 }
 
 /// Cloudflare zone owner information.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct CloudflareOwner {
     /// The owner ID.
     ///
@@ -119,7 +125,8 @@ pub struct CloudflareOwner {
 }
 
 /// Cloudflare zone metadata information.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct CloudflareZoneMetadata {
     /// The zone is only configured for CDN
@@ -139,7 +146,8 @@ pub struct CloudflareZoneMetadata {
 }
 
 /// Cloudflare endpoint response for List Zones.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct CloudflareListZonesResponse {
     /// The account the zone belongs to.
@@ -204,7 +212,8 @@ pub struct CloudflareListZonesResponse {
 }
 
 /// Cloudflare plan information.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct CloudflarePlan {
     /// The plan identifier
@@ -230,14 +239,16 @@ pub struct CloudflarePlan {
 }
 
 /// Cloudflare tenet unit information.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct CloudflareTenantUnit {
     /// The tenant unit identifier
     pub id: Option<String>,
 }
 
 /// Cloudflare tenet information.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct CloudflareTenant {
     /// The tenant identifier
     pub id: Option<String>,
@@ -246,7 +257,8 @@ pub struct CloudflareTenant {
 }
 
 /// Cloudflare organization information.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct CloudflareOrganizationUserDetails {
     /// The organization identifier for the user
     pub id: String,
@@ -261,7 +273,8 @@ pub struct CloudflareOrganizationUserDetails {
 }
 
 /// Cloudflare endpoint response for Get User Details
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct CloudflareUserDetailsResponse {
     /// The user's identifier
@@ -309,7 +322,8 @@ pub struct CloudflareUserDetailsResponse {
 }
 
 /// A DNS record response
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct DNSRecord {
     /// The stored DNS record.
     /// For A or AAAA records, this is the IP address.
@@ -346,7 +360,8 @@ pub struct DNSRecord {
 }
 
 /// Extra Cloudflare-specific information about the record.
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 struct Meta {
     /// Whether the record was automatically added by Cloudflare during initial setup
     auto_added: Option<bool>,

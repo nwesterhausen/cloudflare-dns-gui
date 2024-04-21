@@ -1,15 +1,19 @@
-import { createSignal, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
-import Lib from "./lib";
+import "./App.css";
 import Navbar from "./Navbar";
+import { CLOUDFLARE_API_KEY } from "./lib";
+import type { CloudflareListZonesResponse } from "../src-tauri/bindings/CloudflareListZonesResponse";
+import type { CloudflareZoneDnsResponse } from "./types";
+import type { CustomUserDetails } from "../src-tauri/bindings/CustomUserDetails";
 
 function App() {
 	const [greetMsg, setGreetMsg] = createSignal(<div />);
-	const [token, setToken] = createSignal(localStorage.getItem(Lib.CLOUDFLARE_API_KEY));
+	const [token, setToken] = createSignal(localStorage.getItem(CLOUDFLARE_API_KEY));
 
 	// Update the token signal when the localStorage changes
 	window.addEventListener("storage", () => {
-		setToken(localStorage.getItem(Lib.CLOUDFLARE_API_KEY));
+		setToken(localStorage.getItem(CLOUDFLARE_API_KEY));
 	});
 
 	function setLoading() {
@@ -28,7 +32,7 @@ function App() {
 	async function get_user_details() {
 		setLoading();
 		// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-		const response = await invoke("get_user_details", {});
+		const response = (await invoke("get_user_details", {})) as CustomUserDetails;
 		if (response) {
 			setGreetMsg(
 				<div class="flex flex-col gap-3">
@@ -44,8 +48,8 @@ function App() {
 	async function get_zones() {
 		setLoading();
 
-		const zones = await invoke("get_zones", {});
-		const zoneDns = await invoke("get_zone_dns", {});
+		const zones = (await invoke("get_zones", {})) as CloudflareListZonesResponse[];
+		const zoneDns = (await invoke("get_zone_dns", {})) as CloudflareZoneDnsResponse;
 
 		setGreetMsg(
 			<div class="flex flex-col gap-3 my-2 w-96">

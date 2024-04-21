@@ -32,6 +32,7 @@ function Navbar() {
 							localStorage.removeItem(Lib.API_READY);
 						} else {
 							const key = prompt("Enter your Cloudflare API key:");
+							if (!key) return;
 							localStorage.setItem(Lib.CLOUDFLARE_API_KEY, key);
 							console.log("Setting API token");
 							await invoke("set_api_token", { token: key });

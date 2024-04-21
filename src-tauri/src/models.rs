@@ -1,11 +1,13 @@
 //! Data models for the application.
 
-use std::{collections::HashMap, sync::Mutex};
-
 use crate::cloudflare::{CloudflareListZonesResponse, DNSRecord};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, sync::Mutex};
+use ts_rs::TS;
 
 /// Short details about the user, for display in the UI.
-#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[ts(export)]
 pub struct CustomUserDetails {
     /// The user ID.
     pub id: String,
@@ -18,7 +20,7 @@ pub struct CustomUserDetails {
 }
 
 /// Managed cache of the queries that are supported
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ManagedCache {
     /// Cloudflare API token (bearer token)
     pub api_token: Mutex<String>,
