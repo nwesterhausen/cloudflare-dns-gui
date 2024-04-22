@@ -98,4 +98,4 @@ jobs:
       - name: Run clippy
         run: |
           cd ./src-tauri
-          cargo clippy -- -D warnings
+          cargo clippy -- -D warnings -A clippy::used_underscore_binding
