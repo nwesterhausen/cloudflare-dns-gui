@@ -4,5 +4,5 @@
 
 /// Entry point for the Tauri application.
 fn main() {
-    cloudflare_dns_gui::run()
+    cloudflare_dns_gui::run();
 }

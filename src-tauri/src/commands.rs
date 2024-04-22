@@ -11,6 +11,16 @@ use crate::{
 };
 
 /// Set the api_token
+///
+/// # Errors
+///
+/// This will return an error if the token is invalid.
+///
+/// It will also error if there's an issue accessing the cache.
+///
+/// # Panics
+///
+/// This will panic if the cache is poisoned.
 #[tauri::command]
 #[allow(clippy::needless_pass_by_value)]
 pub async fn set_api_token(
@@ -18,18 +28,24 @@ pub async fn set_api_token(
     managed_cache: State<'_, ManagedCache>,
 ) -> Result<(), ()> {
     // Clear the cache
+    #[allow(clippy::unwrap_used)]
     {
         managed_cache.zones.lock().unwrap().clear();
         managed_cache.zone_dns.lock().unwrap().clear();
         *managed_cache.user_details.lock().unwrap() = None;
         *managed_cache.api_token.lock().unwrap() = String::default();
     }
-    *managed_cache.api_token.lock().unwrap() = token.clone();
+    // Set the token
+    #[allow(clippy::unwrap_used)]
+    {
+        *managed_cache.api_token.lock().unwrap() = token.clone();
+    }
 
     // Check the token is valid
     let user_details = api::check_api_key(&token).await;
     if let Ok(user_details) = user_details {
         // Update the user details and re-lock the cache
+        #[allow(clippy::unwrap_used)]
         {
             *managed_cache.user_details.lock().unwrap() = Some(user_details);
         }
@@ -39,21 +55,34 @@ pub async fn set_api_token(
 
 /// Initialize the Cloudflare API with the provided token.
 /// This will clear the cache and set the token, for use in subsequent requests.
+///
+/// # Errors
+///
+/// This will return an error if the token is invalid.
+///
+/// It will also error if there's an issue accessing the cache.
+///
+/// # Panics
+///
+/// This will panic if the cache is poisoned.
 #[tauri::command]
 #[allow(clippy::needless_pass_by_value)]
 pub async fn initialize_cf(managed_cache: State<'_, ManagedCache>) -> Result<bool, ()> {
     // Clear the cache
+    #[allow(clippy::unwrap_used)]
     {
         managed_cache.zones.lock().unwrap().clear();
         managed_cache.zone_dns.lock().unwrap().clear();
         *managed_cache.user_details.lock().unwrap() = None;
     }
     // Attempt to set the token
+    #[allow(clippy::unwrap_used)]
     let new_token = managed_cache.api_token.lock().unwrap().clone();
     // Check the token is valid
     let user_details = api::check_api_key(&new_token).await;
     if let Ok(user_details) = user_details {
         // Update the user details and re-lock the cache
+        #[allow(clippy::unwrap_used)]
         {
             *managed_cache.user_details.lock().unwrap() = Some(user_details);
         }
@@ -66,9 +95,10 @@ pub async fn initialize_cf(managed_cache: State<'_, ManagedCache>) -> Result<boo
                     return Err(());
                 }
             }
-            Err(_) => return Err(()),
+            Err(()) => return Err(()),
         };
         // Update the cache with the zone details
+        #[allow(clippy::unwrap_used)]
         {
             *managed_cache.zones.lock().unwrap() = zones.clone();
         }
@@ -76,13 +106,14 @@ pub async fn initialize_cf(managed_cache: State<'_, ManagedCache>) -> Result<boo
 
         {
             for zone_id in &zone_ids {
-                let dns_records = api::get_zone_dns(&new_token, zone_id.clone())
-                    .await
-                    .unwrap();
+                let Ok(dns_records) = api::get_zone_dns(&new_token, zone_id.clone()).await else {
+                    return Err(());
+                };
                 if !dns_records.success {
                     return Err(());
                 }
                 let dns_records = dns_records.result;
+                #[allow(clippy::unwrap_used)]
                 let mut zone_dns = managed_cache.zone_dns.lock().unwrap();
 
                 zone_dns.insert(zone_id.clone(), dns_records);
@@ -94,19 +125,38 @@ pub async fn initialize_cf(managed_cache: State<'_, ManagedCache>) -> Result<boo
 
 /// Check if the API key was valid.
 /// This will return the user details if the key is valid, or an error if it is not.
+///
+/// # Errors
+///
+/// This will return an error if the token is invalid.
+///
+/// It will also error if there's an issue accessing the cache.
+///
+/// # Panics
+///
+/// This will panic if the cache is poisoned.
 #[tauri::command]
 #[allow(clippy::needless_pass_by_value)]
 pub async fn get_user_details(
     managed_cache: State<'_, ManagedCache>,
 ) -> Result<CustomUserDetails, ()> {
-    if let Some(user_details) = &*managed_cache.user_details.lock().unwrap() {
-        Ok(user_details.clone())
-    } else {
-        Err(())
-    }
+    #[allow(clippy::unwrap_used)]
+    (*managed_cache.user_details.lock().unwrap())
+        .as_ref()
+        .map_or(Err(()), |user_details| Ok(user_details.clone()))
 }
 
 /// Get the zones for the current user. This is pulled from the cache.
+///
+/// # Errors
+///
+/// This will return an error if the token is invalid.
+///
+/// It will also error if there's an issue accessing the cache.
+///
+/// # Panics
+///
+/// This will panic if the cache is poisoned.
 #[tauri::command]
 #[allow(clippy::needless_pass_by_value)]
 pub async fn get_zones(
@@ -119,6 +169,16 @@ pub async fn get_zones(
 }
 
 /// Get the DNS records for a zone. This is pulled from the cache.
+///
+/// # Errors
+///
+/// This will return an error if the token is invalid.
+///
+/// It will also error if there's an issue accessing the cache.
+///
+/// # Panics
+///
+/// This will panic if the cache is poisoned.
 #[tauri::command]
 #[allow(clippy::needless_pass_by_value)]
 pub async fn get_zone_dns(

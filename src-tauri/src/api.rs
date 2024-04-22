@@ -101,6 +101,10 @@ pub async fn check_api_key(token: &str) -> Result<CustomUserDetails, ()> {
 }
 
 /// Command for getting all dns entries for a zone
+///
+/// # Errors
+///
+/// This will return an error if the token is invalid.
 pub async fn get_zone_dns(
     token: &str,
     zone_id: String,

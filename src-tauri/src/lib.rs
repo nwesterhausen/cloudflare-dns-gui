@@ -11,6 +11,10 @@ pub mod commands;
 pub mod models;
 
 /// Entry point for the Tauri application.
+///
+/// # Panics
+///
+/// This will panic if the app fails to run
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tracing_subscriber::fmt::init();
