@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nwesterhausen/cloudflare-dns-gui"
+    "url": "ssh://git@github.com/nwesterhausen/cloudflare-dns-gui.git"
   },
   "packageManager": "bun@1.1.4",
   "private": true,
