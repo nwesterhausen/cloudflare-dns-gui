@@ -34,11 +34,8 @@ jobs:
       - uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3
         with:
           version: latest
-      - name: Node Setup
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
+      - name: Install bun
+        uses: oven-sh/setup-bun@v1
       - name: Install Dependencies
         run: |
           sudo apt-get update
@@ -58,10 +55,10 @@ jobs:
           toolchain: stable
       - name: Install Client Dependencies & Build
         run: |
-          pnpm install
-          pnpm build
+          bun install
+          bun build
       - name: Build Tauri App
-        run: pnpm tauri build
+        run: bun tauri build
       - name: Show sccache stats
         shell: bash
         run: |
