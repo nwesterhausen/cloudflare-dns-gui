@@ -15,4 +15,5 @@ plugins:
       - CHANGELOG.md
       - package.json
       message: "chore: release ${nextRelease.version}\n\n${nextRelease.notes}"
+  - semantic-release-export-data
   - "@semantic-release/github"
