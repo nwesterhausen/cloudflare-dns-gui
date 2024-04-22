@@ -1,7 +1,5 @@
-# Tauri + Solid + Typescript
+# cloudflare-dns-gui
 
-This template should help get you started developing with Tauri, Solid and Typescript in Vite.
+A gui to use with the cloudflare API.
 
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+I was annoyed with how sluggish it is to modify and view DNS records on Cloudflare's site, so made this client.
