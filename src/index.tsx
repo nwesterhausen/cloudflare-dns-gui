@@ -3,15 +3,18 @@ import { render } from "solid-js/web";
 
 import "./index.css";
 import App from "./App";
-import { ZoneProvider } from "./ZoneProvider";
-import { TokenProvider } from "./TokenProvider";
+import { ZoneProvider } from "./providers/ZoneContext";
+import { TokenProvider } from "./providers/TokenContext";
+import { UserProvider } from "./providers/UserContext";
 
 render(
 	() => (
 		<TokenProvider>
-			<ZoneProvider>
-				<App />
-			</ZoneProvider>
+			<UserProvider>
+				<ZoneProvider>
+					<App />
+				</ZoneProvider>
+			</UserProvider>
 		</TokenProvider>
 	),
 	document.getElementById("root") as HTMLElement,

@@ -1,21 +1,8 @@
-import { createSignal } from "solid-js";
-import Lib from "./lib";
-import { invoke } from "@tauri-apps/api/core";
+import { Match, Switch } from "solid-js";
+import { useTokenProvider } from "./providers/TokenContext";
 
 function Navbar() {
-	const [statusButtonText, setStatusButtonText] = createSignal(statusButtonTextGen());
-	function successIconGen() {
-		if (localStorage.getItem(Lib.API_READY)) return "✅";
-		return "🙅";
-	}
-	function statusButtonTextGen() {
-		return `API: ${localStorage.getItem(Lib.CLOUDFLARE_API_KEY) ? successIconGen() : "❌"}`;
-	}
-
-	// Update the token signal when the localStorage changes
-	window.addEventListener("storage", () => {
-		setStatusButtonText(statusButtonTextGen());
-	});
+	const [apiToken, apiReady, { setApiToken, resetApi }] = useTokenProvider();
 
 	return (
 		<div class="navbar bg-base-100">
@@ -26,46 +13,27 @@ function Navbar() {
 				<button
 					type="button"
 					class="btn btn-ghost text-xl"
-					onClick={async () => {
-						if (localStorage.getItem(Lib.CLOUDFLARE_API_KEY)) {
-							localStorage.removeItem(Lib.CLOUDFLARE_API_KEY);
-							localStorage.removeItem(Lib.API_READY);
-						} else {
-							const key = prompt("Enter your Cloudflare API key:");
-							if (!key) return;
-							localStorage.setItem(Lib.CLOUDFLARE_API_KEY, key);
-							console.log("Setting API token");
-							await invoke("set_api_token", { token: key });
-							console.log("Initializing CF cache");
-							localStorage.setItem(Lib.API_READY, await invoke("initialize_cf", {}));
+					onClick={() => {
+						if (apiToken().length > 0) {
+							resetApi();
+							return;
 						}
 
-						// Force re-render
-						window.location.reload();
+						const key = prompt("Enter your Cloudflare API key:");
+						if (!key) return;
+						setApiToken(key);
 					}}
 				>
-					{statusButtonText()}
+					{" "}
+					API:
+					<Switch>
+						<Match when={apiToken().length > 0 && apiReady()}>✅</Match>
+						<Match when={apiToken().length > 0}>
+							📡<span class="loading loading-dots loading-xs" />
+						</Match>
+						<Match when={true}>❌</Match>
+					</Switch>
 				</button>
-			</div>
-			<div class="navbar-end">
-				<div class="flex-none">
-					<button type="button" class="btn btn-square btn-ghost">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							class="inline-block w-5 h-5 stroke-current"
-						>
-							<title>hamburger menu</title>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"
-							/>
-						</svg>
-					</button>
-				</div>
 			</div>
 		</div>
 	);
