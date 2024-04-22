@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/nwesterhausen/cloudflare-dns-gui/compare/v1.0.1...v1.0.2) (2024-04-22)
+
+
+### Bug Fixes
+
+* **ci:** modify semantic-release flow ([#22](https://github.com/nwesterhausen/cloudflare-dns-gui/issues/22)) ([5f3785b](https://github.com/nwesterhausen/cloudflare-dns-gui/commit/5f3785b8dc17978fb3f93b1b38c4edc3ec510342))
+
 ## [1.0.1](https://github.com/nwesterhausen/cloudflare-dns-gui/compare/v1.0.0...v1.0.1) (2024-04-22)
 
 
