@@ -22,7 +22,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
-            commands::get_zones,
+            commands::list_zones,
             commands::get_user_details,
             commands::get_zone_dns,
             commands::initialize_cf,

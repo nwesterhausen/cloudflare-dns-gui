@@ -41,15 +41,6 @@ pub async fn set_api_token(
         *managed_cache.api_token.lock().unwrap() = token.clone();
     }
 
-    // Check the token is valid
-    let user_details = api::check_api_key(&token).await;
-    if let Ok(user_details) = user_details {
-        // Update the user details and re-lock the cache
-        #[allow(clippy::unwrap_used)]
-        {
-            *managed_cache.user_details.lock().unwrap() = Some(user_details);
-        }
-    }
     Ok(())
 }
 
@@ -92,10 +83,10 @@ pub async fn initialize_cf(managed_cache: State<'_, ManagedCache>) -> Result<boo
                 if zones.success {
                     zones.result
                 } else {
-                    return Err(());
+                    return Ok(false);
                 }
             }
-            Err(()) => return Err(()),
+            Err(()) => return Ok(false),
         };
         // Update the cache with the zone details
         #[allow(clippy::unwrap_used)]
@@ -107,10 +98,10 @@ pub async fn initialize_cf(managed_cache: State<'_, ManagedCache>) -> Result<boo
         {
             for zone_id in &zone_ids {
                 let Ok(dns_records) = api::get_zone_dns(&new_token, zone_id.clone()).await else {
-                    return Err(());
+                    return Ok(false);
                 };
                 if !dns_records.success {
-                    return Err(());
+                    return Ok(false);
                 }
                 let dns_records = dns_records.result;
                 #[allow(clippy::unwrap_used)]
@@ -119,8 +110,9 @@ pub async fn initialize_cf(managed_cache: State<'_, ManagedCache>) -> Result<boo
                 zone_dns.insert(zone_id.clone(), dns_records);
             }
         }
+        return Ok(true);
     }
-    Ok(true)
+    Ok(false)
 }
 
 /// Check if the API key was valid.
@@ -159,7 +151,7 @@ pub async fn get_user_details(
 /// This will panic if the cache is poisoned.
 #[tauri::command]
 #[allow(clippy::needless_pass_by_value)]
-pub async fn get_zones(
+pub async fn list_zones(
     managed_cache: State<'_, ManagedCache>,
 ) -> Result<Vec<CloudflareListZonesResponse>, ()> {
     if let Ok(zones) = managed_cache.zones.lock() {

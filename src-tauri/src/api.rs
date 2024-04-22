@@ -32,6 +32,8 @@ pub async fn get_zones(
 
     let request_builder = authorizer.with_auth(request_builder);
 
+    tracing::info!("get_zones: Sending request to Cloudflare API");
+
     let response: CloudflareResponse<Vec<CloudflareListZonesResponse>> = request_builder
         .send()
         .await
@@ -73,16 +75,22 @@ pub async fn check_api_key(token: &str) -> Result<CustomUserDetails, ()> {
 
     let request_builder = authorizer.with_auth(request_builder);
 
-    let response: CloudflareResponse<CloudflareUserDetailsResponse> = request_builder
-        .send()
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to send request");
-            tracing::error!("{:?}", e);
-        })?
-        .json()
-        .await
-        .map_err(|e| {
+    tracing::info!("check_api_key: Sending request to Cloudflare API");
+
+    let response = request_builder.send().await.map_err(|e| {
+        tracing::error!("Failed to send request");
+        tracing::error!("{:?}", e);
+    })?;
+
+    if response.status() != 200 {
+        tracing::error!("Failed to get user details");
+        tracing::error!("{response:?}");
+        tracing::error!("Provided token: {token}");
+        return Err(());
+    }
+
+    let response: CloudflareResponse<CloudflareUserDetailsResponse> =
+        response.json().await.map_err(|e| {
             tracing::error!("Failed to parse response as JSON");
             tracing::error!("{:?}", e);
         })?;
@@ -121,6 +129,8 @@ pub async fn get_zone_dns(
         .header("Content-Type", "application/json");
 
     let request_builder = authorizer.with_auth(request_builder);
+
+    tracing::info!("get_zone_dns: Sending request to Cloudflare API for {zone_id}");
 
     let response: CloudflareResponse<Vec<DNSRecord>> = request_builder
         .send()

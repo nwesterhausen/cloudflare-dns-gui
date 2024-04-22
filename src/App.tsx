@@ -1,37 +1,17 @@
-import { createEffect, createSignal, For, type JSX, Show } from "solid-js";
+import { For, Show } from "solid-js";
 import Navbar from "./Navbar";
-import { useTokenProvider } from "./TokenProvider";
-import { useZone } from "./ZoneProvider";
+import { Toaster } from "./Toaster";
+import { useZonesProvider } from "./providers/ZoneContext";
 
 function App() {
-	const { apiToken, userDetails } = useTokenProvider();
-	const { zones, zoneDns } = useZone();
-
-	const [toast, setToast] = createSignal<JSX.Element>(<div />);
-	const putToast = (token: JSX.Element) => {
-		setToast(token);
-		setTimeout(() => {
-			setToast(<div />);
-		}, 5_000);
-	};
-
-	createEffect(() => {
-		if (apiToken().length > 0 && userDetails.latest.email.length > 0) {
-			putToast(
-				<div class="alert alert-success">
-					<div class="flex flex-col gap-3">
-						<div>API Key is valid.</div>
-						<div>User: {userDetails.latest.email}</div>
-						<div>Organizations: {userDetails.latest.organizations.join(", ")}</div>
-					</div>
-				</div>,
-			);
-		}
-	});
+	const zonesCtx = useZonesProvider();
+	if (!zonesCtx) return <div>Loading...</div>;
+	const [zones, zoneDns] = zonesCtx;
 
 	return (
 		<>
 			<Navbar />
+			<Toaster />
 
 			<div class="container mx-auto">
 				<div>
@@ -48,7 +28,6 @@ function App() {
 						</For>
 					</div>
 				</div>
-				<div class="toast toast-top toast-center">{toast()}</div>
 			</div>
 		</>
 	);
