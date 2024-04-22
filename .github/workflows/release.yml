@@ -29,6 +29,79 @@ jobs:
       - name: Install Dependencies
         run: bun install
       - name: Release
+        id: semantic-release-step
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_GH_TOKEN }}
         run: bunx semantic-release
+    outputs:
+      new-release-published: ${{ steps.semantic-release-step.outputs.new-release-published }}
+      new-release-version: ${{ steps.semantic-release-step.outputs.new-release-version }}
+  publish-tauri:
+    permissions:
+      contents: write # to be able to publish a GitHub release
+    needs:
+      - release
+    name: Publish Tauri Packages
+    if: needs.release.outputs.new-release-published == 'true'
+    strategy:
+      matrix:
+        platform:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+      fail-fast: false
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4
+        with:
+          fetch-depth: 0
+      - name: Install bun
+        uses: oven-sh/setup-bun@8f24390df009a496891208e5e36b8a1de1f45135 #v1
+      - name: Install Dependencies
+        run: bun install
+      - name: Update Version for Build
+        run: bash version ${{ needs.release.outputs.new-release-version }}
+      - name: Install Dependencies (required on Ubuntu)
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.0-dev \
+              build-essential \
+              curl \
+              wget \
+              file \
+              libssl-dev \
+              libgtk-3-dev \
+              libayatana-appindicator3-dev \
+              librsvg2-dev
+          sudo apt-get install -y javascriptcoregtk-4.1 \
+              libsoup-3.0 \
+              webkit2gtk-4.1
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@bb45937a053e097f8591208d8e74c90db1873d07 # master
+        with:
+          toolchain: stable
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@2e7f9ec7921547d4b46598398ca573513895d0bd # 0.0.4
+      - name: Build Client
+        run: |
+          bun install
+          bun run build
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@32165c22c317182abb119ad267da7eeb375cb8aa # dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
+          releaseName: 'v__VERSION__'
+          releaseDraft: true
+          prerelease: false
+      - name: Show sccache stats
+        shell: bash
+        run: |
+          echo '## SCCACHE STATS' >> $GITHUB_STEP_SUMMARY
+          echo '| Metric | Value |' >> $GITHUB_STEP_SUMMARY
+          echo '|--------|-------|' >> $GITHUB_STEP_SUMMARY
+          ${SCCACHE_PATH} --show-stats | awk -F'[[:space:]][[:space:]]+' 'NR<=22{ print "| "$1" | "$2" |"}' >> $GITHUB_STEP_SUMMARY
+          echo '</hr>' >> $GITHUB_STEP_SUMMARY
