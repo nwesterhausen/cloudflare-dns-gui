@@ -1,7 +1,17 @@
 {
-  "name": "temp-tauri",
+  "name": "cloudflare-dns-gui",
   "version": "1.0.0",
-  "description": "",
+  "description": "A simple Cloudflare DNS GUI",
+  "author": {
+    "email": "nick@westmail.cc",
+    "name": "Nick Westerhausen",
+    "url": "https://github.com/nwesterhausen"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nwesterhausen/cloudflare-dns-gui"
+  },
+  "packageManager": "bun@1.1.4",
   "type": "module",
   "scripts": {
     "start": "vite",
