@@ -1,3 +1,17 @@
+## [1.0.1](https://github.com/nwesterhausen/cloudflare-dns-gui/compare/v1.0.0...v1.0.1) (2024-04-22)
+
+
+### Bug Fixes
+
+* **ci:** build artifacts for release on release ([336d68e](https://github.com/nwesterhausen/cloudflare-dns-gui/commit/336d68e8c994ff66aa46735ff5bbb639242f0300))
+
+
+
+Dry run mode
+Current version: 1.0.0
+New version: 1.0.1
+  "version": "1.0.1",
+
 ## 1.0.0 (2024-04-22)
 
 
