@@ -1,0 +1,29 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+
+permissions: read-all
+
+jobs:
+  release:
+    name: Handle Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+    steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install bun
+        uses: oven-sh/setup-bun@8f24390df009a496891208e5e36b8a1de1f45135 #v1
+      - name: Install Dependencies
+        run: bun install
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_GH_TOKEN }}
+        run: bunx semantic-release

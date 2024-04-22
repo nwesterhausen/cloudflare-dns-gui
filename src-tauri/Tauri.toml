@@ -1,5 +1,6 @@
 productName = "cloudflare-dns-gui"
-version = "1.0.0"
+# Tracking version in package.json, which is updated automatically with semantic-release.
+version = "../package.json"
 identifier = "one.nwest.apps.cloudflare-dns-gui"
 
 [build]
