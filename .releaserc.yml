@@ -8,7 +8,7 @@ plugins:
   - - "@semantic-release/changelog"
     - changelogFile: CHANGELOG.md
   - - "@semantic-release/exec"
-    - generateNotesCmd: bash version ${nextRelease.version} dry-run
+    - verifyRelease: bash version ${nextRelease.version} dry-run
       prepareCmd: bash version ${nextRelease.version}
   - - "@semantic-release/git"
     - assets:
