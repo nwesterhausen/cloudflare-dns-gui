@@ -15,10 +15,12 @@ tauri = { version = "2.0.0-beta.15", features = ["config-toml"] }
 tauri-plugin-shell = "2.0.0-beta"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-
-[dependencies.cloudflare]
-git = "https://github.com/cloudflare/cloudflare-rs.git"
-rev = "cc78fb62f8142eeb7924fc3b934bfef19ddaf124"
+reqwest = "0.12"
+tracing = "0.1.40"
+chrono = "0.4.37"
+log = "0.4.21"
+tracing-subscriber = "0.3.18"
+ts-rs = "8.1.0"
 
 # Some very strict lints.
 [lints.rust]
@@ -36,3 +38,4 @@ module_name_repetitions = "allow"
 needless_pass_by_value = "allow"
 cast_possible_truncation = "allow"
 cast_precision_loss = "allow"
+used_underscore_binding = "allow"

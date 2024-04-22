@@ -1,24 +1,53 @@
 {
   "name": "cloudflare-dns-gui",
-  "version": "0.0.0",
-  "description": "",
+  "version": "1.0.0",
+  "description": "A simple Cloudflare DNS GUI",
+  "author": {
+    "email": "nick@westmail.cc",
+    "name": "Nick Westerhausen",
+    "url": "https://github.com/nwesterhausen"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/nwesterhausen/cloudflare-dns-gui.git"
+  },
+  "packageManager": "bun@1.1.4",
+  "private": true,
   "type": "module",
   "scripts": {
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "af": "biome format --write ."
   },
   "license": "MIT",
   "dependencies": {
-    "@tauri-apps/api": "2.0.0-beta.8",
-    "@tauri-apps/plugin-shell": "2.0.0-beta.2",
-    "solid-js": "^1.8.16"
+    "@solid-primitives/context": "^0.2.3",
+    "@tauri-apps/api": ">=2.0.0-beta.0",
+    "@tauri-apps/plugin-shell": ">=2.0.0-beta.0",
+    "solid-js": "^1.7.8"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.7.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^12.0.0",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/release-notes-generator": "^13.0.0",
     "@tauri-apps/cli": "2.0.0-beta.13",
-    "vite": "^5.2.9",
-    "vite-plugin-solid": "^2.10.2"
+    "autoprefixer": "^10.4.19",
+    "conventional-changelog-conventionalcommits": "^7.0.2",
+    "daisyui": "^4.10.2",
+    "internal-ip": "^7.0.0",
+    "postcss": "^8.4.38",
+    "postcss-cli": "^11.0.0",
+    "postcss-import": "^16.1.0",
+    "semantic-release": "^23.0.8",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.0.2",
+    "vite": "^5.0.0",
+    "vite-plugin-solid": "^2.8.0"
   }
 }
